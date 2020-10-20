@@ -1,30 +1,158 @@
-import tkinter as tk
+from ArduinoControl.single_valve import *
+import multiprocessing
+# from ArduinoControl.single_valve import Level,Coord, Board
+class Controller(object):
+    val = 0
+    def __init__(self,X,Y,Level):
+        self.level  = Level
+        self.interval = {}
+        self.duration ={}
+        self.startTime = {}
+        self.start = time.time()
+        for x in range(X):
+            for y in range(Y):
+                self.interval[(x,y)] = None
+                self.duration[(x, y)] = None
+                self.startTime[(x,y)] = float('inf')
 
-# --- functions ---
+    def set_parameters(self,x,y,time,interval,duration):
+        self.duration[(x,y)] = int(duration)
+        self.interval [(x,y)] = int(interval)
+        self.startTime[(x,y)] = int(time)
+
+    def reset_time (self):
+        self.start = time.time()
+    def status_controller(self):
+        # print('call')
+        t = (time.time() - self.start)*1000
+        start = time.time()
+        flag = 0
+        for (x,y),startTime in self.startTime.items():
+            # print('start', startTime)
+            if  t > startTime :
+                flag = 1
+                # print('start',startTime)
+                duration = self.duration[(x,y)]
+                interval = self.interval[(x,y)]
+                residual_time = (t - float(startTime))% (duration + interval)
+
+                # print(duration,interval)
+                if  duration <= residual_time <= duration + update_rate*1.5 :
+                    # print(t)
+                    root.grid_slaves(y,13-x)[0]['image'] = off_img
+                    self.level.set((x,y),0)
+                    # print('off')
+                if residual_time  <= update_rate*1.5:
+                    # print(t)
+                    self.level.set((x,y),1)
+                    root.grid_slaves(y, 13 - x)[0]['image'] = on_img
+                    # print('on')
+        if  flag : ser.write(self.level.shift_str())
+        # print('need',(time.time()-start)*1000000)
+        root.after(update_rate, self.status_controller)
+
+    def switch_status(self):
+        self.val = not self.val
+        self.level.set((0, 0), self.val)
+        ser.write(self.level.shift_str())
+        print(time.time()*1000)
+        root.after(2,self.switch_status)
+# --- valve actions ---
+
+
+
+
+def set_valve_on(widget,level,x,y):
+    level.set((x,y),1)
+    print(x,y)
+    widget['image'] = on_img
+    ser.write(level.shift_str())
+
+def set_valve_off(widget,level,x,y):
+    level.set((x, y), 0)
+    widget['image'] = off_img
+    ser.write(level.shift_str())
+
+
+
+# --- click handlers ---
 
 def on_click(args):
-    widget,x,y = args[0],args[1],args[2]
-    if widget['image'] == 'pyimage1':
-        widget['image'] = img2
+    widget, level, x,y, _off_img_name = args[0],args[1],args[2],args[3],args[4]
+    if widget['image'] ==_off_img_name:
+        set_valve_on(widget,level,x,y)
         print(widget['image'])
-        print(x,y,1)
+
     else:
-        widget['image'] = img1
+        set_valve_off(widget,level,x,y)
         print(widget['image'])
-        print(x,y,0)
+        l0.set((x,y),0)
+        ser.write(l0.shift_str())
+def double_click_handler(e, args,controller):
+    def confirm_freq(win,para):
+        win.destroy()
+        controller.set_parameters(x,y,para[0].get(),para[1].get(),para[2].get())
+        controller.reset_time()
+    widget, level, x, y = args[0], args[1], args[2],args[3]
+    win_define_freq = tk.Toplevel(root)
+    win_define_freq.geometry('300x200')
+    win_define_freq.title('define interval and duration')
+    var_interval = tk.StringVar()
+    var_interval.set('interval')
+    var_duration = tk.StringVar()
+    var_duration.set('duration')
+    var_starTime = tk.StringVar()
+    var_starTime.set('start time')
+    l1 = tk.Entry(win_define_freq, bg='white', fg='black', width=20, textvariable=var_interval)
+    l2 = tk.Entry(win_define_freq, bg='white', fg='black', width=20, textvariable=var_duration)
+    l3 = tk.Entry(win_define_freq, bg='white', fg='black', width=20, textvariable=var_starTime)
+    button = tk.Button(win_define_freq, text="Confirm",
+                       command=lambda  win=win_define_freq, para  = [var_starTime ,var_interval,  var_duration]
+                       : confirm_freq(win,para))
+    button.pack()
+    l1.pack()
+    l2.pack()
+    l3.pack()
+
+    # show the frequence
+    def print_selection(v):
+        l1.delete(0, last=20)
+        l1.insert(0, v)
+
+        # creat a scale
+        s = tk.Scale(win_define_freq, label='frequence', from_=0, to=100, digits=3, variable=var_interval.get(),
+                     orient=tk.HORIZONTAL, length=300, showvalue=0, tickinterval=5,
+                     resolution=1, command=print_selection)
+        s.pack()
 
 # --- main ---
 
-root = tk.Tk()
+if __name__ == '__main__':
+    import tkinter as tk
+    import serial, sys, time
+    from cobs import cobs
 
-img1 = tk.PhotoImage( data ='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')
-img2 = tk.PhotoImage(data = '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')
+    update_rate = 1 # ms
+    sys.path.append(r'E:\study\BoardsControl\lib')
 
+    root = tk.Tk()
 
-for y in range(10):
+    off_img = tk.PhotoImage(data ='iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAFG0lEQVRoQ92aV8gdRRTHf7Fg78aCYBcbWBC7eRAfFEXBEntFxIq9ISo2UJFEwYZijWJDRBNsoOiD/UERFcUodmyxREUlVn5hViYns/fu3rv5vhvP292dOXP+s6fNf+4EupHVgF2BHYBNgQ2BlYDlkvqfgR+AmcB7wMvAc8C3wy4/YQgFGngIcCSw/QB6/gFeBaYB9wM/DqCDQQCsDpwNnAAsO8iihTl+oZuBKcA3bXS2AbAYcCpwSeYabdZqMvYn4GLgBuCvJhOaAlgPeBDYtolS4HfgS+CXNN4vtSawZMP5rwEHAR/3G98EwJ7AfcAKPZR9DzwCPAu8AnwK/B3GLwKsA+wI7AbsmwK9Tq1BfyjwVC8Q/QAcBdwG6D4leQO4CngUmNNvt8L7JRKI84Eta+b+CRwD3FunuxcAjb8TioH+BXAm8FBLo+uGu9MG8BqFAWYrM10RRB0A3eaxmp3X6OMAA65LWRG4HdivoPQPYG/g6fiuBMCA1TVKPu/nvrpLqwu6LgQuLzw3JrYGPsnfRQD6+ks12eZ44NYFbHyl/iTgxsJaJohd8hQbAZwBTC1MHIudj8taDy4t2GItur56ngOwwtqrVP1LNUafNyePhxiH+4SFZwMbVX1UDuCa1CLk4802my2AgG26GfZbNn82i7kYh3rFfynSgRaf2Nu4812lyqZGx3FHpIYvf27vtLYNYPUFSkHzOrDNoKt2OE8b3wI2DzptJm+pABjdsSUehd2vbC59BbPlzgLQv74O6OxtbL7atgcdbvw8qpYCvgKWz55aoScKwJ1+IKxs/2O1HSW5Bzg8GDRZANcCp4cXnrQiqPEGc3TqzXI7pgrAdnX3YJ3tRN9efIwRbZxSar7sEwL4ANgge+phZJlCPz/G9s63nG3Or8Di2ZuZAvgOWDl7+BGw/nhbW7P+58Ba2btZAjDT5KjMuVuMKIB3gU0y2+b8LwAs9C60sASxbm4Q5+fz93WhJ4E9gs8bxAbzKEkpjT5eV8gOS1TKKAGQnbgjGDRFAAcm0ip/58BjR8n6xEq4sbkcUDVzNkr54cYDtBTHqDRzS6dmLj8t2sytWhkt3S01nsso9UNyVHcF+14AJlUATgRuCgPeBLYaATeSknw73Tvk5sxlSSoAkkoeKeOBXsZM7n48pRS8kmoeKWfnfu9B+dxgqQyzh/qBLh86QL0KYPswMei6ErjAZzkAT2bSKvmpxzGyzvt3YExbFdo2A9grTHQzpVVmRQD+Pg24rrDSRcAVbS0YcvxlgOtGOSVn7SIzt2iiFrcrTDy5EOhD2lg7vW4jPchPys8qJXJ33UTuGthRpPtKxGtXQLTHnZfgjSLRYFb8LH9RR6/bG+l/pYsN6T4zg8WuSzFg7y74vGtIr0v5PxMXrAPgOBkAr0BLY6Rhzknl3Yo4jJjnLVRmwZht1Kt+bfGaaz7pBaACYV+Un9hyJe+khR8GfmuJwvZgMnBeoUhVqtx52Yii8Q7qB8AxMhYWM/nTOrGwTE+XfLYlHwLeb+WiO0oe7JQu+WSdY+HMx3vQOrjkNk1iIBrq7aI8UeyX6gC5c15YS8IqGip9X3dZGPWYbTR+noAdxIXyOaZYSWDrQSx2Lb2ndrhFygzkrX28pi1OauJCcaKBdlYC08sF2oDSBb1S8nZoboVtKoMAqHRbJ+RVvQL18rqtLrPLi4Ccp/8C8OaltbRdtG4Bc7h/txGIvI29ikFfuZo7bCHK/27zfCLVWhudT/gXslvv+kxLb20AAAAASUVORK5CYII=')
+    on_img = tk.PhotoImage(data ='iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAGF0lEQVRoQ92adcilRRSHn7U7dw3sLizEdhEVA0Wx1k5E7O7Ewt5VTBRbsRA7UVHB/kMRe1exe41VMdbkWeaV+WZn3rjf/UQ8f973zJlzZk78zpk7jP7QXMB6wBrAMsDiwOzAzEH8D8C3wDjgLeA54Angq8FuP2wQAlRwR2A3YPUe5PwFvADcANwCfNeDDHoxYG7gSGBfYKZeNs2s8YYuB0YDX3aR2cWAqYCDgVMi1+iyVxve74GTgUuAP9osaGvAIsBtwKpthAK/AJ8BPwZ+b2peYLqW618Etgfeb+JvY8CmwM3ArDXCvgHuBB4Hngc+BP5M+KcAFgLWBDYAtgqBXhJr0O8EPFxnRJMBuwNXAbpPjl4GzgbuBiY2nVbyfdpgxLHAioW1vwN7AjeVZNcZoPLXQjbQPwEOB27vqHSJ3ZM2gOfJMJitzHRZI0oG6Db3FE5epfcGDLh+0mzA1cDWGaG/AZsDj6TfcgYYsLpGzue97nP6qXVG1onA6ZnfjYmVgQ/ib6kB+vqzhWyzD3DlECtfid8fuDSzlwlinTjFpgYcBozJLPw3Tj7d1npwakYXa9HF1e+xAVZYsUqFXyoefd6c3IaWCrzrBkw0PCwaD7wBPBXqydg2wkIcbpHwTgCWqHBUbMB5ASLE/GabZVsErDznApu1UMyscj9wFPB2A794S/AnWIzJONQr/kmRMlp8UmzjyTelyoOA84FpWigfs/wK6LJioDraNQC+mEfstKAAsLqBXNC8BKzSINwidkxHxVP2M4ETamSo46vAcgmPYPKKygCjO4XETafvyV80SOWr5R5g3U3kbsFsubYG6F9fJIqIbQRfJXigz1srurpNyV7daQWgFNzTA58Ds0QCjKURGuBJ35pIFv9YbUtkELYJ2C4XZOXfsmbBjcAuyfdRGnABcGjywU4rNapiMVWaGfpNnuiSwDsFwXsEbBZ/HqMBwtWNk0XCiRIWLxWYfhhkMBvUOcod3IMaoMWLRStsRmbM4PmKRcy/fj+0zch4DNiwIFuY8xMwdfR9nAZ8DcwR/fgesGiNgp+GAB8KGyyc89cI/hiYL/o+XgPMNLFV5lwzQolS/n4aomwbnRK9CSwdfZz4vzDgv+RCusgCXV2oaxAbaDblQ0GPAhsVBOvmBnHcn4/VhR4CNkkWGcQGc45OAk4bCu2B44GzCrJzafSBUiHbOYxScrIsNhaypolGVxstZOL8dwsLnU5ck3wbrRLbhSYj/ibjXjUa3Bua7K5K1vHfVWjoqzVOJTzYmLatwJxAKT5RG2hHHCUw53W+0pDyuhhn8Vy+BkbMEMBc3C16Y8MrpR13OxqPqQ4PyVdqvLsoXvE2DQycUV2XCH4aGFkZsB9wWcLgCa/UoI245bheNI7WOEIRX5XIkeRroceOeSYZXRngUMmWMm3onZg5u68jjRfR1lXQ3Hrd5pAWo5pc8DpUs6WcEPu9jfLRyU5OmG1emh4fzEw29U4QmrKTvuss1b1K0LlSY05A+DAi0ctUa8odsJmdmWOVuOuRx6nzNi3dxKcls5rPTT41VRv7aKEiPis5JCilyngbD+K+TOPkYZpuHdVMdlpe6YUZZS1eZ7Q0ol9sFkv3TenAeGqXXveUYbS4WmbhAZlA75eyqZzSQdrIj4x7lZy/LhwadgM7JbNFbvDaL0PUx5N3wJuSgwaz4kepn+U2Fxvpf7mHDZtvM4PFrp9kwF5fGBY4XnfkL5AcQHUZwwmAT6A5HscwjgYt72aVwZB53kJlFkyzjXKVry4+c01GTSnPheKiuGOLhbweNr4D+LmjFcKDUWGyZ8bKkSfvNCKrvAuaDJDHiYXFzPlpiSwsAjwbfmGJadL3rZh0R4cHa4V+wpqRFs6Y30Zrh5zbxExtDJDf10XnRCleKhnkyZn7HcJKKur4vvRYmMox26j8gIDtxYXiNaZYAZz1IC12Hb2nyG6RMgM5J02fabOL2t5AvNhAOyIYU+cCXYzSBX1S8nVoUoVtS70YUMm2TjhX9QnUx+uusswuzwDOPP0XgC8vnanrpqUNzOHiHw1xbiNWMegrV/OELUTx322eDEO1zkrHC/4Gtl8wCVaZzl4AAAAASUVORK5CYII=')
+    l0 = Level(11)
+    ser = serial.Serial('COM6', baudrate=115200)
+    ser.write(cobs.encode(bytes([11]) + b'\x00') + b'\x00')
+
+    controller = Controller(2,2,l0)
+    controller.reset_time()
     for x in range(12):
-        button = tk.Button(root, image=img1)
-        button['command'] = lambda args=[button, x,y]:on_click(args)
-        button.grid(row=y, column=x)
+        for y in range(14):
+            valve = tk.Button(root, image=off_img)
+            offimg_name = valve['image']
+            valve['command'] = lambda args=[valve, l0, 13-y, x, offimg_name]: on_click(args)
+            valve.bind('<Double-Button-1>', lambda e, args = [valve, l0 , 13-y, x], fun =double_click_handler: fun(e, args,controller))
+            valve.grid(row=x, column=y)
 
-root.mainloop()
+    # root.after(update_rate, controller.status_controller)
+    root.after(update_rate, controller.switch_status)
+    root.mainloop()
