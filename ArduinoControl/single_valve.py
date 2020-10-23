@@ -86,7 +86,7 @@ class Board(object):
         self.mapping = {(k + other): v for k ,v in self.mapping.items()}
 
 
-class Level(object):
+class DataPin(object):
     """Represents one level of the display with a bunch of shift
     register boards."""
 
@@ -128,22 +128,22 @@ class Level(object):
             # Board(mapping=Level.rotated_mapping),
             Board((12 ,8)),
             Board((12 ,4)),
-            Board((12 ,0),mapping=Level.board19_mapping),
-            Board((10 ,0) ,mapping=Level.flipped_mapping),
-            Board((10 ,4) ,mapping=Level.flipped_mapping),
-            Board((10 ,8) ,mapping=Level.flipped_mapping),
+            Board((12 ,0), mapping=DataPin.board19_mapping),
+            Board((10 ,0), mapping=DataPin.flipped_mapping),
+            Board((10 ,4), mapping=DataPin.flipped_mapping),
+            Board((10 ,8), mapping=DataPin.flipped_mapping),
             Board((8 ,8)),
             Board((8 ,4)),
             Board((8 ,0)),
-            Board((6 ,0) ,mapping = Level.flipped_mapping),
-            Board((6 ,4) ,mapping = Level.flipped_mapping),
-            Board((6 ,8) ,mapping=Level.flipped_mapping),
+            Board((6 ,0), mapping = DataPin.flipped_mapping),
+            Board((6 ,4), mapping = DataPin.flipped_mapping),
+            Board((6 ,8), mapping=DataPin.flipped_mapping),
             Board((4 ,8)),
             Board((4 ,4)),
             Board((4 ,0)),
-            Board((2 ,0) ,mapping = Level.flipped_mapping),
-            Board((2 ,4) ,mapping = Level.flipped_mapping),
-            Board((2 ,8) ,mapping = Level.flipped_mapping),
+            Board((2 ,0), mapping = DataPin.flipped_mapping),
+            Board((2 ,4), mapping = DataPin.flipped_mapping),
+            Board((2 ,8), mapping = DataPin.flipped_mapping),
             Board((0 ,8)),
             Board((0 ,4)),
             Board((0 ,0))
@@ -189,7 +189,7 @@ if __name__ == '__main__':
     """Demonstrate communicating with an attached Arduino for shifting
     one level at a time."""
 
-    l0 = Level(11)
+    pin11 = DataPin(11)
     # l1 = Level(10)
     ser = serial.Serial(sys.argv[1], baudrate=115200)
     # ser = serial.Serial('comp6', baudrate=115200)
@@ -224,12 +224,12 @@ if __name__ == '__main__':
                 for y in range(11, 0, -1):
                     print('({}, {})'.format(x, y))
                     input()  # wait for the Enter key
-                    l0.set((x, y), val)
+                    pin11.set((x, y), val)
                     # l0.set((x+1,y), val)
                     # l0.set((x+2,y), val)
                     # if y < 10:
                     # 	l0.set((x,y+2), not val)
                     # 	l0.set((x+1,y+2),not val)
                     # 	l0.set((x+2,y+2),not val)
-                    print("shift_str", l0.shift_str())
-                    ser.write(l0.shift_str())
+                    print("shift_str", pin11.shift_str())
+                    ser.write(pin11.shift_str())

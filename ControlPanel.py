@@ -86,8 +86,8 @@ def on_click(args):
     else:
         set_valve_off(widget,level,x,y)
         print(widget['image'])
-        l0.set((x,y),0)
-        ser.write(l0.shift_str())
+        pin11.set((x, y), 0)
+        ser.write(pin11.shift_str())
 def double_click_handler(e, args,controller):
     def confirm_freq(win,para):
         win.destroy()
@@ -131,7 +131,8 @@ if __name__ == '__main__':
     import tkinter as tk
     import serial, sys, time
     from cobs import cobs
-
+    port_u = '/dev/ttyACM0'
+    port_w = 'com6'
     update_rate = 1 # ms
     sys.path.append(r'E:\study\BoardsControl\lib')
 
@@ -139,8 +140,8 @@ if __name__ == '__main__':
 
     off_img = tk.PhotoImage(data ='iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAFG0lEQVRoQ92aV8gdRRTHf7Fg78aCYBcbWBC7eRAfFEXBEntFxIq9ISo2UJFEwYZijWJDRBNsoOiD/UERFcUodmyxREUlVn5hViYns/fu3rv5vhvP292dOXP+s6fNf+4EupHVgF2BHYBNgQ2BlYDlkvqfgR+AmcB7wMvAc8C3wy4/YQgFGngIcCSw/QB6/gFeBaYB9wM/DqCDQQCsDpwNnAAsO8iihTl+oZuBKcA3bXS2AbAYcCpwSeYabdZqMvYn4GLgBuCvJhOaAlgPeBDYtolS4HfgS+CXNN4vtSawZMP5rwEHAR/3G98EwJ7AfcAKPZR9DzwCPAu8AnwK/B3GLwKsA+wI7AbsmwK9Tq1BfyjwVC8Q/QAcBdwG6D4leQO4CngUmNNvt8L7JRKI84Eta+b+CRwD3FunuxcAjb8TioH+BXAm8FBLo+uGu9MG8BqFAWYrM10RRB0A3eaxmp3X6OMAA65LWRG4HdivoPQPYG/g6fiuBMCA1TVKPu/nvrpLqwu6LgQuLzw3JrYGPsnfRQD6+ks12eZ44NYFbHyl/iTgxsJaJohd8hQbAZwBTC1MHIudj8taDy4t2GItur56ngOwwtqrVP1LNUafNyePhxiH+4SFZwMbVX1UDuCa1CLk4802my2AgG26GfZbNn82i7kYh3rFfynSgRaf2Nu4812lyqZGx3FHpIYvf27vtLYNYPUFSkHzOrDNoKt2OE8b3wI2DzptJm+pABjdsSUehd2vbC59BbPlzgLQv74O6OxtbL7atgcdbvw8qpYCvgKWz55aoScKwJ1+IKxs/2O1HSW5Bzg8GDRZANcCp4cXnrQiqPEGc3TqzXI7pgrAdnX3YJ3tRN9efIwRbZxSar7sEwL4ANgge+phZJlCPz/G9s63nG3Or8Di2ZuZAvgOWDl7+BGw/nhbW7P+58Ba2btZAjDT5KjMuVuMKIB3gU0y2+b8LwAs9C60sASxbm4Q5+fz93WhJ4E9gs8bxAbzKEkpjT5eV8gOS1TKKAGQnbgjGDRFAAcm0ip/58BjR8n6xEq4sbkcUDVzNkr54cYDtBTHqDRzS6dmLj8t2sytWhkt3S01nsso9UNyVHcF+14AJlUATgRuCgPeBLYaATeSknw73Tvk5sxlSSoAkkoeKeOBXsZM7n48pRS8kmoeKWfnfu9B+dxgqQyzh/qBLh86QL0KYPswMei6ErjAZzkAT2bSKvmpxzGyzvt3YExbFdo2A9grTHQzpVVmRQD+Pg24rrDSRcAVbS0YcvxlgOtGOSVn7SIzt2iiFrcrTDy5EOhD2lg7vW4jPchPys8qJXJ33UTuGthRpPtKxGtXQLTHnZfgjSLRYFb8LH9RR6/bG+l/pYsN6T4zg8WuSzFg7y74vGtIr0v5PxMXrAPgOBkAr0BLY6Rhzknl3Yo4jJjnLVRmwZht1Kt+bfGaaz7pBaACYV+Un9hyJe+khR8GfmuJwvZgMnBeoUhVqtx52Yii8Q7qB8AxMhYWM/nTOrGwTE+XfLYlHwLeb+WiO0oe7JQu+WSdY+HMx3vQOrjkNk1iIBrq7aI8UeyX6gC5c15YS8IqGip9X3dZGPWYbTR+noAdxIXyOaZYSWDrQSx2Lb2ndrhFygzkrX28pi1OauJCcaKBdlYC08sF2oDSBb1S8nZoboVtKoMAqHRbJ+RVvQL18rqtLrPLi4Ccp/8C8OaltbRdtG4Bc7h/txGIvI29ikFfuZo7bCHK/27zfCLVWhudT/gXslvv+kxLb20AAAAASUVORK5CYII=')
     on_img = tk.PhotoImage(data ='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')
-    l0 = Level(11)
-    ser = serial.Serial('COM6', baudrate=115200)
+    l0 = DataPin(11)
+    ser = serial.Serial(port, baudrate=115200)
     ser.write(cobs.encode(bytes([11]) + b'\x00') + b'\x00')
 
     controller = Controller(2,2,l0)
