@@ -1,4 +1,5 @@
 from cobs import cobs
+
 class Coord(object):
     """A simple coordinate object representing x/y coordinates. Supports
     comparison with other Coords, tuples, and lists; hashing; and
@@ -183,6 +184,10 @@ class DataPin(object):
             bytes([self.data_pin]) + self.get_shift_string()) + b'\x00'
 
 
+pin11 = DataPin(11)
+port_u = '/dev/ttyACM0'
+empty_str = b'\x02\x0b\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x00'
+
 if __name__ == '__main__':
     import serial, sys, time
     from cobs import cobs
@@ -191,13 +196,16 @@ if __name__ == '__main__':
 
     pin11 = DataPin(11)
     # l1 = Level(10)
-    ser = serial.Serial(sys.argv[1], baudrate=115200)
-    # ser = serial.Serial('comp6', baudrate=115200)
+    # ser = serial.Serial(sys.argv[1], baudrate=115200)
+    ser = serial.Serial(port_u, baudrate=115200)
 
     print(cobs.encode(bytes([11]) + b'\x00') + b'\x00')
-    ser.write(cobs.encode(bytes([11]) + b'\x00') + b'\x00')
+    ser.write(empty_str)
 
     val = True
+    last = -1
+
+    last = -1
     while True:
 
         # x,y= map(int,input('x,y = ').split(','))  #wait for the Enter key
@@ -218,18 +226,42 @@ if __name__ == '__main__':
         # 			ser.write(l0.shift_str())
         # val = not val
 
+        # for x in range(1,3):
+        #     for y in range(5, 12):
+        #         print('({}, {})'.format(x, y))
+        #         # input()  # wait for the Enter key
+        #         time.sleep(0.035)
+        #         pin11.set((x, y), 1)
+        #         if last !=-1:
+        #             pin11.set(last, 0)
+        #         last = (x,y)
+        #         # l0.set((x+1,y), val)
+        #         # l0.set((x+2,y), val)
+        #         # if y < 10:
+        #         # 	l0.set((x,y+2), not val)
+        #         # 	l0.set((x+1,y+2),not val)
+        #         # 	l0.set((x+2,y+2),not val)
+        #         print("shift_str", pin11.shift_str())
+        #         ser.write(pin11.shift_str())
+        # ser.write(empty_str)
+        pin11.set((12, 1), val)
+        val = not val
+        input()
+        print(time.time())
+        ser.write(pin11.shift_str())
 
-        for x in range(10 ,15):
-            for val in [1, 0]:
-                for y in range(11, 0, -1):
-                    print('({}, {})'.format(x, y))
-                    input()  # wait for the Enter key
-                    pin11.set((x, y), val)
-                    # l0.set((x+1,y), val)
-                    # l0.set((x+2,y), val)
-                    # if y < 10:
-                    # 	l0.set((x,y+2), not val)
-                    # 	l0.set((x+1,y+2),not val)
-                    # 	l0.set((x+2,y+2),not val)
-                    print("shift_str", pin11.shift_str())
-                    ser.write(pin11.shift_str())
+
+        # for x in range(0 ,15):
+        #     for val in [1, 0]:
+        #         for y in range(11, 0, -1):
+        #             print('({}, {})'.format(x, y))
+        #             input()  # wait for the Enter key
+        #             pin11.set((x, y), val)
+        #             # l0.set((x+1,y), val)
+        #             # l0.set((x+2,y), val)
+        #             # if y < 10:
+        #             # 	l0.set((x,y+2), not val)
+        #             # 	l0.set((x+1,y+2),not val)
+        #             # 	l0.set((x+2,y+2),not val)
+        #             print("shift_str", pin11.shift_str())
+        #             ser.write(pin11.shift_str())

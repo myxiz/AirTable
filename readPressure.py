@@ -7,7 +7,10 @@ from quamash import QEventLoop, QtGui, QtCore
 from collections import deque
 from OneEuroFilter.one_euro_filter import OneEuroFilter
 # from joblib import load
+from Frequency import  point
 import socket
+
+import var
 
 
 class DataGrapher(pg.GraphicsWindow):
@@ -19,7 +22,7 @@ class DataGrapher(pg.GraphicsWindow):
         # psi  = (25 * (p - pMin))/(pMax - pMin)
         return ((psi * cls.u.psi).to(cls.u.hectopascal)).m
 
-    def __init__(self, serialport, *, baudrate=115200,
+    def __init__(self, serialport, *, baudrate=57600,
                  outpath=None, printlines=False, firstline='', printHz=False,
                  bufsize=2048, pMin=0, pMax=25, convert_pressure=False,
                  socket_start=False):
@@ -41,7 +44,7 @@ class DataGrapher(pg.GraphicsWindow):
         self.f = OneEuroFilter(100, .25, .1)
         self.event = 0
         self.run = True
-        self.filterflag = True
+        self.filterflag = False
 
         # Touch event detection
         self.diffsamps = 100  # How far back to look for diff
@@ -110,6 +113,13 @@ class DataGrapher(pg.GraphicsWindow):
         self.wait_rise = True
 
         self.log('ts,event,sensorcount,filtpressure,rawpressure,filtering,cutoff,beta')
+        on_flag = 0
+        file = None
+        data_buffer = []
+        write_buffuer = ''
+        start = 0
+        i = 0
+
 
         while self.run:
             line = (await reader.readuntil()).strip()
@@ -128,8 +138,45 @@ class DataGrapher(pg.GraphicsWindow):
                 data = self.rawPressureToHPA(sensorcount, self.pMin, self.pMax)
             else:
                 data = sensorcount
-            fdata = self.f(data, t)
+            #fdata = self.f(data, t)
+            # print('raw data', data)
+            # if (on_flag == 0) & (data >150)  :
+            #     on_start = time.time()*1000
+            #     on_flag = 1
+            #     print(on_start)
+            #     if not file:
+            #         file = 'result/freq/' + str(int(time.time())) + '_pressure.txt'
+            # elif (on_flag == 1) & (data <= 105):
+            #     print(time.time()*1000, 'off',on_flag)
+            #     off_start = 1000*time.time()
+            #     with open(file, "a") as myfile:
+            #         myfile.write('on: ' + str(on_start) + '; off :' + str(off_start)  + '\n')
+            #     print(time.time()*1000,'on')
+            if (data < 4000)& (data>60):
+                data_buffer.append(data)
+                write_buffuer+=str(1000*time.time())+' '+ str(data) + '\n'
 
+            if len(data_buffer) >= var.on_time*1100 :
+                if start == 1:
+                    myfile.write(write_buffuer)
+                elif np.mean(np.sort(data_buffer)[-6:]) > 400 :
+                    print(var.on_time)
+                    start = 1
+                    # print(np.sort(data_buffer)[-5:])
+                    myfile = open('/home/molly/PycharmProjects/AirTable/result/pressure/'+str(point)+'_'+str( var.on_time)+'_pressure_'+str(i)+'.txt', "w+")
+
+                    # with open('/home/molly/PycharmProjects/AirTable/result/pressure/'+str(point)+'_'+str(on_time)+'_pressure_'+str(i)+'.txt', "a") as myfile:
+                    myfile.write(write_buffuer)
+                # if (np.mean(data_buffer) < 109) & (start ==1):
+                #     myfile.close()
+                #     print(var.on_time)
+                    # start = 0
+                    # i +=1
+                    # myfile = open('/home/molly/PycharmProjects/AirTable/result/pressure/' + str(point) + '_' + str(
+                    #     var.on_time) + '_pressure_' + str(i) + '.txt', "w+")
+                data_buffer = []
+                write_buffuer = ''
+                # on_flag = 0
             self.rawdata.append(data)
             if self.filterflag:
                 self.plotbuf.append(fdata)
@@ -181,12 +228,12 @@ class DataGrapher(pg.GraphicsWindow):
             #         self.count = 0
 
             if self.printlines or self.outfile:
-                out = ('{timestamp:.4f},{event},{sensorcount},{filtpressure:.8f},'
+                out = ('{timestamp:.4f},{event},{sensorcount},'
                        '{rawpressure:.8f},{filtering},{cutoff:.4f},{beta:.4f}').format(
                     timestamp=t,
                     event=self.event,
                     sensorcount=sensorcount,
-                    filtpressure=fdata,
+                    # filtpressure=fdata,
                     rawpressure=data,
                     filtering=self.filterflag,
                     cutoff=self.f._OneEuroFilter__mincutoff,
@@ -234,6 +281,7 @@ def analog2pressure(volts, vmin=.5, vmax=4.5, pmin=0, pmax=6,
 
 
 if __name__ == "__main__":
+
     from clize import run
 
     run(DataGrapher)
