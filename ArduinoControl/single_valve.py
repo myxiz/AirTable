@@ -197,7 +197,7 @@ if __name__ == '__main__':
     pin11 = DataPin(11)
     # l1 = Level(10)
     # ser = serial.Serial(sys.argv[1], baudrate=115200)
-    ser = serial.Serial(port_u, baudrate=115200)
+    ser = serial.Serial(port_u, baudrate=250000)
 
     print(cobs.encode(bytes([11]) + b'\x00') + b'\x00')
     ser.write(empty_str)

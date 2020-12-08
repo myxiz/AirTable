@@ -118,8 +118,6 @@ class DataGrapher(pg.GraphicsWindow):
         data_buffer = []
         write_buffuer = ''
         start = 0
-        i = 0
-
 
         while self.run:
             line = (await reader.readuntil()).strip()
@@ -163,8 +161,7 @@ class DataGrapher(pg.GraphicsWindow):
                     print(var.on_time)
                     start = 1
                     # print(np.sort(data_buffer)[-5:])
-                    myfile = open('/home/molly/PycharmProjects/AirTable/result/pressure/'+str(point)+'_'+str( var.on_time)+'_pressure_'+str(i)+'.txt', "w+")
-
+                    myfile = open('/home/molly/PycharmProjects/AirTable/result/pressure/'+str(point)+'_pressure'+'.txt', "w+")
                     # with open('/home/molly/PycharmProjects/AirTable/result/pressure/'+str(point)+'_'+str(on_time)+'_pressure_'+str(i)+'.txt', "a") as myfile:
                     myfile.write(write_buffuer)
                 # if (np.mean(data_buffer) < 109) & (start ==1):
