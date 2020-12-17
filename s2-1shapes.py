@@ -21,9 +21,9 @@ if __name__ == '__main__':
     # induce_static_shape(ser,file,jets_triangle4x4,shape_name,times)
 
 
-    jets_circle4x4 = creat_static_shape(hexagon4x4)
+    jets_circle4x4 = creat_static_shape(square3x3_longer)
     file = 'result/result_shapes.txt'
     shape_name = 'circle'
     times = 100000
-    # sequence = compile_frequency(ser, jets_square4x4 , )
-    induce_static_shape(ser, file, jets_circle4x4, shape_name, times)
+    # sequence = compile_static(ser, jets_square4x4  ,5)
+    induce_static_shape(ser, file, jets_circle4x4, shape_name, 5)

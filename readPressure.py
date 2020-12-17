@@ -24,7 +24,7 @@ class DataGrapher(pg.GraphicsWindow):
 
     def __init__(self, serialport, *, baudrate=57600,
                  outpath=None, printlines=False, firstline='', printHz=False,
-                 bufsize=2048, pMin=0, pMax=25, convert_pressure=False,
+                 bufsize=2048, pMin=0, pMax=1000, convert_pressure=False,
                  socket_start=False):
         super().__init__()
 
@@ -157,7 +157,7 @@ class DataGrapher(pg.GraphicsWindow):
             if len(data_buffer) >= var.on_time*1100 :
                 if start == 1:
                     myfile.write(write_buffuer)
-                elif np.mean(np.sort(data_buffer)[-6:]) > 400 :
+                elif np.mean(np.sort(data_buffer)[-6:]) > 104 :
                     print(var.on_time)
                     start = 1
                     # print(np.sort(data_buffer)[-5:])

@@ -15,6 +15,7 @@ class Controller(object):
         else:
             self.jets = jets_list
 
+
         stop_times = [i['stop_time'] + i['start_time'] for i in self.jets]
         # print(stop_times)
         # for jet in self.jets:
@@ -22,6 +23,8 @@ class Controller(object):
         self.loop_period = max(stop_times)
 
     def periodical_switch(self, time_now):  # jet will start at start_time, on/off duty according to on_time, off_time
+        for jet in self.jets:
+            jet['cycle'] = jet['on_time'] + jet['off_time']
         for jet in self.jets:
             t = time_now - jet['start_time']
             if t >= 0:
@@ -64,14 +67,21 @@ class Controller(object):
             # print(t*1000)
             self.ser.write(pin11.shift_str())
 
+def compile_static (ser, jets, lasting_time):
+    serial_strs = [empty_str, 0, 0]
+    for jet in jets:
+        pin11.set(jet['point'],1)
+    serial_strs.insert(0, (pin11.shift_str(), 0.01, 1))
+    serial_strs.insert(0, (pin11.shift_str(), lasting_time+0.01, 0))
+    return serial_strs
 
-def compile_frequency(ser, jets, times):  # return (str, time, jets_status)
+def compile_frequency(ser, jets, lasting_time):  # return (str, time, jets_status)
     # serial_strs = [(cobs.encode(bytes([11]) + b'\x00') + b'\x00',-0.001,[])]
     serial_strs = []
     last_str = cobs.encode(bytes([11]) + b'\x00') + b'\x00'
     jets_contro = Controller(ser, jets)
     # print('times', times)
-    for n in range(times * 1000):
+    for n in range(lasting_time * 1000):
         jets_contro.periodical_switch(n / 1000)
         # jets_status = str([i for i in jets_contro.get_jets_status()[0].values()])
         jets_status = str(list(jets_contro.get_jets_status()[0].values())[0])
@@ -89,7 +99,7 @@ def compile_motion(ser, jets, lasting_time, inter_cycle):
     last = cobs.encode(bytes([11]) + b'\x00') + b'\x00'
     serial_strs = []
     jets_contro = Controller(ser, jets)
-    for n in range(lasting_time*1000):
+    for n in range(lasting_time * 1000):
         jets_contro.sequencial_motion_switch(n / 1000, inter_cycle)
         jets_status = str(list(jets_contro.get_jets_status()[0].values())[0])
         if not (last == pin11.shift_str()):
@@ -106,7 +116,7 @@ def compile_dynamic(ser, jets, rnd, inter_cycle):
     serial_strs = []
     jets_contro = Controller(ser, jets)
     # print(jets_contro.loop_period)
-    for n in range(int(1000*(jets_contro.loop_period + inter_cycle) * rnd)):
+    for n in range(int(1000 * (jets_contro.loop_period + inter_cycle) * rnd)):
         jets_contro.sequencial_motion_switch(n / 1000, inter_cycle)
         jets_status = str(list(jets_contro.get_jets_status()[0].values())[0])
         if not (last == pin11.shift_str()):
@@ -124,7 +134,7 @@ def sending_serial_sequence(ser, lasting_time, serial_strs, record=False, file=N
 
         time_now = (time.time() - start)
         # print(t,time_now)
-        if abs(t - time_now) <= 0.0009:  # 0.0009 works
+        if abs(t - time_now) <= 0.001:  # 0.0009 works
             # print(t, time_now,serial_strs)
             if record:
                 with open(file, "a") as myfile:
@@ -157,14 +167,26 @@ def sending_serial_sequence(ser, lasting_time, serial_strs, record=False, file=N
 
 
 # render a static shape
-def induce_static_shape(ser, file, jets, shape_name, times):
-    serial_strs = compile_frequency(ser, jets, 5)
+def induce_static_shape(ser, file, jets, shape_name, lasting_time):
+    ser.write(empty_str)
+    for jet in jets:
+        pin11.set(jet['point'], 1)
+    ser.write(pin11.shift_str())
+    time.sleep(lasting_time)
+    ser.write(empty_str)
+    for jet in jets:
+        pin11.set(jet['point'], 0)
+
+
+
+def induce_shading(ser, file, jets, shading, lasting_time):
+    serial_strs = compile_frequency(ser, jets, lasting_time)
     # print('off time:', off_time, 'on time : ', on_time)
-    sending_serial_sequence(ser, times, serial_strs)
-    s = input('answer the shape: ')
-    print('the shape is ', shape_name + ',')
+    sending_serial_sequence(ser, lasting_time, serial_strs)
+    s = input('answer the shading: ')
+    print("it is", shading + ',')
     with open(file, "a") as myfile:
-        myfile.write(shape_name + ' recognized as ' + s + ' \n')
+        myfile.write(shading + ' recognized as ' + s + ' \n')
 
 
 # render a shape by motion , expect a input
@@ -190,8 +212,9 @@ def run_exp_motion_speed(ser, file, jets, combination, lasting_time, inter_cycle
 
 
 # render with different strategy
-def run_exp_rendering_practice(ser, file, shape,jets, combination, rnd,inter_cycle):
-    serial_strs = compile_dynamic(ser, jets, rnd,inter_cycle)
+def run_exp_rendering_practice(ser, shape, jets, rnd, inter_cycle):
+    serial_strs = compile_dynamic(ser, jets, rnd, inter_cycle)
+    ser.write(empty_str)
     # print('off time:', off_time, 'on time : ', on_time)
     lasting_time = serial_strs[1][1]
     # print(lasting_time)
@@ -202,28 +225,32 @@ def run_exp_rendering_practice(ser, file, shape,jets, combination, rnd,inter_cyc
     # with open(file, "a") as myfile:
     #     myfile.write("interval, duration: " + str(combination) + ' grade : ' + s + ' \n')
 
-def run_exp_rendering(ser, file, shape,jets, rnd,inter_cycle):
-    serial_strs = compile_dynamic(ser, jets, rnd,inter_cycle)
+
+def run_exp_rendering(ser, shape, jets, rnd, inter_cycle):
+    serial_strs = compile_dynamic(ser, jets, rnd, inter_cycle)
     # print('off time:', off_time, 'on time : ', on_time)
-    lasting_time = serial_strs[-1][1]
+    lasting_time = serial_strs[1][1]
     sending_serial_sequence(ser, lasting_time, serial_strs)
-    s = input('next shape')
-    with open(file, "a") as myfile:
-        myfile.write(f'{shape}\n')
+    k = input(f'this is a {shape}, next? y/n')
+    while (k != 'n') & (k != 'y'):
+        k = input(f'this is a {shape}, next? y/n')
 
 
-def run_frequency_experiment(ser, file, combinations):
+def run_frequency_experiment(ser, file, combinations, lasting_time):
     for (on_time, off_time) in combinations:
         point = [
             dict(pin=pin11, on=0, point=(4, 5), start_time=0.0, stop_time=1000, on_time=on_time, off_time=off_time,
                  cycle=on_time + off_time)]
-        serial_strs = compile_frequency(ser, point, 5)
+        serial_strs = compile_frequency(ser, point, lasting_time)
 
         print('off time:', off_time, 'on time : ', on_time)
-        sending_serial_sequence(ser, 5, serial_strs)
+        sending_serial_sequence(ser, lasting_time, serial_strs)
         point[0]['pin'].set(point[0]['point'], 0)
         ser.write(pin11.shift_str())
-        k = input()
+        k = input('next? p/v/c/n')
+        while (k != 'p') & (k != 'v')&(k != 'c') & (k != 'n'):
+            k = input('next? p/v/c/n')
+
         if k == 'p':
             print('feel pulsing  off time:', off_time, 'on time : ', on_time)
             with open(file, "a") as myfile:
@@ -238,19 +265,40 @@ def run_frequency_experiment(ser, file, combinations):
             with open(file, "a") as myfile:
                 myfile.write('off time : ' + str(off_time) + '; on time :' + str(on_time) + ' c' + '\n')
         if k == 'n':
-            print('feel continues  off time:', off_time, 'on time : ', on_time)
-            with open(file, "a") as myfile:
-                myfile.write('off time : ' + str(off_time) + '; on time :' + str(on_time) + ' n' + '\n')
+            print('restart  off time:', off_time, 'on time : ', on_time)
+            point = [
+                dict(pin=pin11, on=0, point=(4, 5), start_time=0.0, stop_time=1000, on_time=on_time, off_time=off_time,
+                     cycle=on_time + off_time)]
+            serial_strs = compile_frequency(ser, point, lasting_time)
+            sending_serial_sequence(ser, lasting_time, serial_strs)
+            point[0]['pin'].set(point[0]['point'], 0)
+            ser.write(pin11.shift_str())
+            k = input('only one chance p/v/c')
+            while (k != 'p') & (k != 'v') & (k != 'c') :
+                k = input(f'next? y/n')
+            if k == 'p':
+                print('feel pulsing  off time:', off_time, 'on time : ', on_time)
+                with open(file, "a") as myfile:
+                    myfile.write('off time : ' + str(off_time) + '; on time :' + str(on_time) + ' p' + '\n')
+            if k == 'v':
+                print('feel vibration   off time:', off_time, 'on time : ', on_time)
+                with open(file, "a") as myfile:
+                    myfile.write('off time : ' + str(off_time) + '; on time :' + str(on_time) + ' v' + '\n')
+                # break
+            if k == 'c':
+                print('feel continues  off time:', off_time, 'on time : ', on_time)
+                with open(file, "a") as myfile:
+                    myfile.write('off time : ' + str(off_time) + '; on time :' + str(on_time) + ' c' + '\n')
 
 
-def run_frequency_characterization(ser, point, file, combinations, record):
+def run_frequency_characterization(ser, point, file, combinations, lasting_time, record):
     for (on_time, off_time) in combinations:
         point = [
             dict(pin=pin11, on=0, point=point, start_time=0.0, stop_time=1000, on_time=on_time, off_time=off_time,
                  cycle=on_time + off_time)]
-        serial_strs = compile_frequency(ser, point, 5)
+        serial_strs = compile_frequency(ser, point, lasting_time)
         print('off time:', off_time, 'on time : ', on_time)
-        sending_serial_sequence(ser, 5, serial_strs, record=record, file=file)
+        sending_serial_sequence(ser, lasting_time, serial_strs, record=record, file=file)
         point[0]['pin'].set(point[0]['point'], 0)
         ser.write(pin11.shift_str())
         # print(' off time:', off_time, 'on time : ', on_time)

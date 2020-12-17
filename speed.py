@@ -28,7 +28,7 @@ if __name__ == '__main__':
     # times = 100000
     # induce_static_shape(ser, file, jets_circle4x4, shape_name, times)
 
-    speed_combinations  =[ (0.07 , 0.1 ), (0.07, 0.150), (0.07, 0.2), (0.1, 0.15), (0.1, 0.2), (0.1,0.25), (0.15, 0.2), (0.15, 0.25), (0.2, 0.25) ]
+    speed_combinations  =[ (0.07 , 0.1 ), (0.07, 0.150), (0.07, 0.2), (0.1, 0.15), (0.1, 0.2), (0.1,0.25), (0.15, 0.2), (0.15, 0.25), (0.2, 0.25), (0.5,0.7),(0.9,1.1),(1,1.2),(1.5,1.7)]
     file = 'result/result_motion.txt'
 
     # for speed_combination in speed_combinations:
@@ -40,7 +40,7 @@ if __name__ == '__main__':
     for speed_combination in  speed_combinations:
         interval, duration = speed_combination
         jets_hexagon4x4 = creat_dynamic_shape(hexagon4x4, duration, interval)
-        run_exp_motion_speed(ser, file, jets_hexagon4x4, speed_combination, 3, 0.0001)
+        run_exp_motion_speed(ser, file, jets_hexagon4x4, speed_combination, 5, 0.5)
         ser.write(empty_str)
     with open(file, "a") as myfile:
         myfile.write(str(time.time()))

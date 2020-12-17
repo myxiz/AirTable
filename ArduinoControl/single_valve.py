@@ -244,7 +244,7 @@ if __name__ == '__main__':
         #         print("shift_str", pin11.shift_str())
         #         ser.write(pin11.shift_str())
         # ser.write(empty_str)
-        pin11.set((12, 1), val)
+        pin11.set((12, 8), val)
         val = not val
         input()
         print(time.time())
