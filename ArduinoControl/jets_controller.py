@@ -67,13 +67,7 @@ class Controller(object):
             # print(t*1000)
             self.ser.write(pin11.shift_str())
 
-def compile_static (ser, jets, lasting_time):
-    serial_strs = [empty_str, 0, 0]
-    for jet in jets:
-        pin11.set(jet['point'],1)
-    serial_strs.insert(0, (pin11.shift_str(), 0.01, 1))
-    serial_strs.insert(0, (pin11.shift_str(), lasting_time+0.01, 0))
-    return serial_strs
+
 
 def compile_frequency(ser, jets, lasting_time):  # return (str, time, jets_status)
     # serial_strs = [(cobs.encode(bytes([11]) + b'\x00') + b'\x00',-0.001,[])]
@@ -167,10 +161,13 @@ def sending_serial_sequence(ser, lasting_time, serial_strs, record=False, file=N
 
 
 # render a static shape
-def induce_static_shape(ser, file, jets, shape_name, lasting_time):
+def induce_static_shape(ser,jets):
     ser.write(empty_str)
     for jet in jets:
+        start_time = jet['start_time']
+        lasting_time = jet['stop_time']
         pin11.set(jet['point'], 1)
+    time.sleep(start_time)
     ser.write(pin11.shift_str())
     time.sleep(lasting_time)
     ser.write(empty_str)
@@ -188,6 +185,16 @@ def induce_shading(ser, file, jets, shading, lasting_time):
     with open(file, "a") as myfile:
         myfile.write(shading + ' recognized as ' + s + ' \n')
 
+
+def induce_comparison(ser, file, jets, comparison, lasting_time):
+    serial_strs = compile_frequency(ser, jets, lasting_time)
+    # print('off time:', off_time, 'on time : ', on_time)
+    sending_serial_sequence(ser, lasting_time, serial_strs)
+    s = input('which one is stronger: l/r')
+    print("left is: ", comparison[0] + ' right is: ', comparison[1])
+    with open(file, "a") as myfile:
+        s.replace('l',str(comparison[0])).replace('r',str(comparison[1]))
+        myfile.write(str(comparison)+' ' + s + ' \n')
 
 # render a shape by motion , expect a input
 def induce_dynamic_shape(ser, file, jets, shape_name, lasting_time):
@@ -225,6 +232,11 @@ def run_exp_rendering_practice(ser, shape, jets, rnd, inter_cycle):
     # with open(file, "a") as myfile:
     #     myfile.write("interval, duration: " + str(combination) + ' grade : ' + s + ' \n')
 
+def run_exp_static(ser, shape, jets):
+    induce_static_shape(ser,jets)
+    k = input(f'this is a {shape}, next? y/n')
+    while (k != 'n') & (k != 'y'):
+        k = input(f'this is a {shape}, next? y/n')
 
 def run_exp_rendering(ser, shape, jets, rnd, inter_cycle):
     serial_strs = compile_dynamic(ser, jets, rnd, inter_cycle)

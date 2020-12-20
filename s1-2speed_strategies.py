@@ -2,6 +2,15 @@ from ArduinoControl.shape_generator import *
 from ArduinoControl.jets_controller import *
 from ArduinoControl.single_valve import *
 
+def get_balanced_order3(no_p):
+    l_m = [[0, 1, 2],
+           [0, 2, 1],
+           [2, 0, 1],
+           [2, 1, 0],
+           [1, 2, 0],
+           [1, 0, 2]]
+    n = no_p % 3
+    return l_m[n]
 
 def get_balanced_order(no_p):
     # l_m = [[0, 1, 2],
@@ -44,7 +53,21 @@ def get_jets_lists(speed):
         circle_p=creat_dynamic_shape(hexagon4x4, interval=round(interval, 2),
                                      duration=round(duration / 1.1, 2))
     )
-    return [jets_n, jets_o, jets_p]
+
+    jets_s = dict(
+        triangle_s=creat_static_shape(triangle4x4,on_time=8*interval*4+1.5),
+        square_s=creat_static_shape(square3x3, on_time=8*interval*4+1.5),
+        circle_s=creat_static_shape(hexagon4x4, on_time=8*interval*4+1.5)
+    )
+    return [jets_n, jets_o, jets_p,jets_s]
+def run_static_practice(ser,jets):
+    shapes = list(jets.keys())
+    random.shuffle(shapes)
+    for shape in shapes:
+        print('the shape is ', shape + '.')
+        induce_static_shape(ser, jets[shape])
+        ser.write(empty_str)
+        s = input('guess next shape')
 
 
 def run_practice(ser, jets, speed):
@@ -59,22 +82,28 @@ def run_practice(ser, jets, speed):
 def run_exp2_speed_strategies(ser, file, no_p):
     speeds = ((0.07, 0.1), (0.12, 0.15), (0.17, 0.2))
     # speeds = ((0.07, 0.1), (0.12, 0.15), (0.17, 0.2))
-    order_1 = get_balanced_order(no_p + 1)
+    order_1 = get_balanced_order3(no_p )
     for n in order_1:
-        speed = speeds[0]
+        speed = speeds[n]
         print(speed)
         jet_list = get_jets_lists(speed)
         order = get_balanced_order(no_p)
         for i in order:
             jets = jet_list[i]
-            run_practice(ser, jets, speed)
+            if i == 3:
+                run_static_practice(ser, jets)
+            else:
+                run_practice(ser, jets, speed)
             k = input('practice finished, do you want to start? y/n')
             practice_number = 1
             while (k != 'n') & (k != 'y'):
                 k = input('practice finished, do you want to start? y/n')
             while k == 'n':
                 practice_number += 1
-                run_practice(ser, jets, speed)
+                if i == 3:
+                    run_static_practice(ser, jets)
+                else:
+                    run_practice(ser, jets, speed)
                 k = input('practice finished, do you want to start? y/n')
             shapes = list(jets.keys())
             shapes += (list(shapes) + list(shapes))
@@ -82,16 +111,20 @@ def run_exp2_speed_strategies(ser, file, no_p):
             with open(file, "a") as myfile:
                 myfile.write(str(shapes) + '\n')
             for shape in shapes:
-                run_exp_rendering(ser, shape, jets[shape], rnd=4, inter_cycle=0.5)
+                if i == 3:
+                    run_exp_static(ser, shape, jets[shape])
+                else:
+                    run_exp_rendering(ser, shape, jets[shape], rnd=4, inter_cycle=0.5)
+
                 ser.write(empty_str)
-            print('Break')
+            input('Break')
 
 
 if __name__ == '__main__':
     import serial, random
 
     ser = serial.Serial(port_u, baudrate=250000)
-    no_p = 0
+    no_p = 3
     file = f'result/result_rendering_{str(no_p)}.txt'
     with open(file, "a") as myfile:
         myfile.write(f'{str(no_p)} ' + str(time.time()) + '\n')

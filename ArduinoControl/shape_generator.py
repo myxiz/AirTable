@@ -26,8 +26,7 @@ def creat_static_shape(coor_list, on_time=3):
     jets = []
     start_time = 0.01
     for point in coor_list:
-        jet = dict(pin=pin11, point=point, start_time=start_time, stop_time=on_time, cycle=on_time + off_time, on=0,
-                   on_time=on_time, off_time=0)
+        jet = dict(pin=pin11, point=point, start_time=start_time, stop_time=on_time, on=0)
         jets.append(jet)
     return jets
 

@@ -27,7 +27,7 @@ if __name__ == '__main__':
     from cobs import cobs
     import random
 
-    participant = 'p1'
+    participant = 'p4'
     id = str(int(time.time()))[-6:]
     file = f'/home/molly/PycharmProjects/AirTable/result/fre_exp/result_{participant}_{id}.txt'
     f = open(file, 'w+')
