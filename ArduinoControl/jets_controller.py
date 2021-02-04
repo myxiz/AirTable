@@ -1,10 +1,6 @@
 from ArduinoControl.single_valve import *
 from ArduinoControl.shape_generator import shading_square
 import time
-import numpy as np
-
-port_w = 'com6'
-
 
 class Controller(object):
     def __init__(self, ser, jets_list=None):
@@ -14,7 +10,6 @@ class Controller(object):
 
         else:
             self.jets = jets_list
-
 
         stop_times = [i['stop_time'] + i['start_time'] for i in self.jets]
         # print(stop_times)
@@ -68,13 +63,11 @@ class Controller(object):
             self.ser.write(pin11.shift_str())
 
 
-
 def compile_frequency(ser, jets, lasting_time):  # return (str, time, jets_status)
-    # serial_strs = [(cobs.encode(bytes([11]) + b'\x00') + b'\x00',-0.001,[])]
     serial_strs = []
     last_str = cobs.encode(bytes([11]) + b'\x00') + b'\x00'
     jets_contro = Controller(ser, jets)
-    # print('times', times)
+
     for n in range(lasting_time * 1000):
         jets_contro.periodical_switch(n / 1000)
         # jets_status = str([i for i in jets_contro.get_jets_status()[0].values()])
@@ -84,7 +77,6 @@ def compile_frequency(ser, jets, lasting_time):  # return (str, time, jets_statu
             serial_strs.insert(0, (pin11.shift_str(), n / 1000, jets_status))
     serial_strs.insert(0,
                        (pin11.shift_str(), float('inf'), jets_status))
-    # print(serial_strs)
     return serial_strs
 
 
@@ -109,7 +101,6 @@ def compile_dynamic(ser, jets, rnd, inter_cycle):
     last = cobs.encode(bytes([11]) + b'\x00') + b'\x00'
     serial_strs = []
     jets_contro = Controller(ser, jets)
-    # print(jets_contro.loop_period)
     for n in range(int(1000 * (jets_contro.loop_period + inter_cycle) * rnd)):
         jets_contro.sequencial_motion_switch(n / 1000, inter_cycle)
         jets_status = str(list(jets_contro.get_jets_status()[0].values())[0])
@@ -142,26 +133,12 @@ def sending_serial_sequence(ser, lasting_time, serial_strs, record=False, file=N
             print('end', time_now)
             break
 
-    # for n in range(lasting_time):
-    #     if t <= n:
-    #         time.sleep(0.00073)
-    #         if (record) & (jets_status != []):
-    #             with open(file, "a") as myfile:
-    #                 myfile.write(
-    #                     'time : ' + str(time.time() * 1000) + ' signal: ' + str(jets_status[0].values()) + '\n')
-    #         ser.write(serial_str)
-    #         (serial_str, t, jets_status) = serial_strs.pop()
-    #
-    #         # print(int((time.time()-start)*1000))  #save to somewhere
-    #     else:
-    #         time.sleep(0.00087)
-
     ser.write(empty_str)
     print(int((time.time() - start) * 1000))
 
 
 # render a static shape
-def induce_static_shape(ser,jets):
+def induce_static_shape(ser, jets):
     ser.write(empty_str)
     for jet in jets:
         start_time = jet['start_time']
@@ -173,7 +150,6 @@ def induce_static_shape(ser,jets):
     ser.write(empty_str)
     for jet in jets:
         pin11.set(jet['point'], 0)
-
 
 
 def induce_shading(ser, file, jets, shading, lasting_time):
@@ -190,11 +166,14 @@ def induce_comparison(ser, file, jets, comparison, lasting_time):
     serial_strs = compile_frequency(ser, jets, lasting_time)
     # print('off time:', off_time, 'on time : ', on_time)
     sending_serial_sequence(ser, lasting_time, serial_strs)
-    s = input('which one is stronger: l/r')
-    print("left is: ", comparison[0] + ' right is: ', comparison[1])
+    s = input('which one is stronger: l/r/s/n')
+    while (s != 'l') & (s != 'r') &(s != 's')&(s != 'n'):
+        s = input('which one is stronger: l/r/s ')
+    print("left is: ", comparison[0], ' right is: ', comparison[1])
     with open(file, "a") as myfile:
-        s.replace('l',str(comparison[0])).replace('r',str(comparison[1]))
-        myfile.write(str(comparison)+' ' + s + ' \n')
+        s.replace('l', str(comparison[0])).replace('r', str(comparison[1]))
+        myfile.write(str(comparison) + ' , ' + s + ' \n')
+
 
 # render a shape by motion , expect a input
 def induce_dynamic_shape(ser, file, jets, shape_name, lasting_time):
@@ -229,14 +208,13 @@ def run_exp_rendering_practice(ser, shape, jets, rnd, inter_cycle):
     print('the shape is ', shape + '.')
     s = input('guess next shape')
 
-    # with open(file, "a") as myfile:
-    #     myfile.write("interval, duration: " + str(combination) + ' grade : ' + s + ' \n')
 
 def run_exp_static(ser, shape, jets):
-    induce_static_shape(ser,jets)
+    induce_static_shape(ser, jets)
     k = input(f'this is a {shape}, next? y/n')
     while (k != 'n') & (k != 'y'):
         k = input(f'this is a {shape}, next? y/n')
+
 
 def run_exp_rendering(ser, shape, jets, rnd, inter_cycle):
     serial_strs = compile_dynamic(ser, jets, rnd, inter_cycle)
@@ -260,7 +238,7 @@ def run_frequency_experiment(ser, file, combinations, lasting_time):
         point[0]['pin'].set(point[0]['point'], 0)
         ser.write(pin11.shift_str())
         k = input('next? p/v/c/n')
-        while (k != 'p') & (k != 'v')&(k != 'c') & (k != 'n'):
+        while (k != 'p') & (k != 'v') & (k != 'c') & (k != 'n'):
             k = input('next? p/v/c/n')
 
         if k == 'p':
@@ -286,7 +264,7 @@ def run_frequency_experiment(ser, file, combinations, lasting_time):
             point[0]['pin'].set(point[0]['point'], 0)
             ser.write(pin11.shift_str())
             k = input('only one chance p/v/c')
-            while (k != 'p') & (k != 'v') & (k != 'c') :
+            while (k != 'p') & (k != 'v') & (k != 'c'):
                 k = input(f'next? y/n')
             if k == 'p':
                 print('feel pulsing  off time:', off_time, 'on time : ', on_time)

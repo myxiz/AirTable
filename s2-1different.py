@@ -2,10 +2,10 @@ from ArduinoControl.single_valve import *
 from ArduinoControl.jets_controller import induce_comparison
 import random
 
-
+# sensation discrimination
 def experiment3_difference(file, lasting_time):
-    point_1 = (4, 4)
-    point_2 = (4, 8)
+    point_1 = (6, 2) #l
+    point_2 = (6, 11) #r
     continuous_list = ['0.004 0.006',
                        '0.007 0.027',
                        '0.004 0.071',
@@ -22,10 +22,11 @@ def experiment3_difference(file, lasting_time):
         for combination_2 in combinations:
             comparisons.append((combination_1, combination_2))
     random.shuffle(comparisons)
-    for comparison in combinations:
+    for comparison in comparisons:
         (off_time_1, on_time_1), (off_time_2, on_time_2) = comparison
+
         jets = [
-            dict(pin=pin11, on=0, started=0, point=point_1, start_time=0.1, stop_time=lasting_time,
+            dict(pin=pin11, on=0, started=0, point=point_1, start_time=0.08, stop_time=lasting_time,
                  on_time=on_time_1,
                  off_time=off_time_1)
             ,
@@ -37,15 +38,15 @@ def experiment3_difference(file, lasting_time):
 
 
 if __name__ == '__main__':
-    import serial
+    import serial,time
 
     ser = serial.Serial(port_u, baudrate=250000)
 
     file = 'result/result_difference.txt'
 
-    participant = 'p4'
+    participant = 'p3'
     id = str(int(time.time()))[-6:]
-    file = f'/home/molly/PycharmProjects/AirTable/result/fre_exp/result_{participant}_{id}.txt'
+    file = f'/home/molly/PycharmProjects/AirTable/result/exp_compare/result_{participant}_{id}.txt'
     f = open(file, 'w+')
     f.close()
     port_u = '/dev/ttyACM0'

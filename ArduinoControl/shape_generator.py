@@ -30,131 +30,6 @@ def creat_static_shape(coor_list, on_time=3):
         jets.append(jet)
     return jets
 
-
-#
-# start_times = np.arange(1, 100, 0.07)
-# # stop_times = np.arange(1,100,0.07)
-# stop_times = [0.1, 0.1, 0.1, 0.1]
-# on_times = [0.1, 0.1, 0.1, 0.1]
-# off_times = [0.07, 0.07, 0.07, 0.07]
-# moving_line = [dict(pin=pin11, on=0, point=(4, 2), start_time=start_times[0] - 0.07, stop_time=stop_times[0],
-#                     on_time=on_times[0], off_time=off_times[0]),
-#                dict(pin=pin11, on=0, started=0, point=(4, 2), start_time=start_times[0], stop_time=stop_times[0],
-#                     on_time=on_times[0], off_time=off_times[0])
-#     ,
-#                dict(pin=pin11, on=0, started=0, point=(4, 3), start_time=start_times[1], stop_time=stop_times[1],
-#                     on_time=on_times[1], off_time=off_times[1])
-#     ,
-#                dict(pin=pin11, on=0, started=0, point=(4, 4), start_time=start_times[2], stop_time=stop_times[2],
-#                     on_time=on_times[2], off_time=off_times[2])
-#     ,
-#                dict(pin=pin11, on=0, started=0, point=(4, 5), start_time=start_times[3], stop_time=stop_times[3],
-#                     on_time=on_times[3], off_time=off_times[3])
-#     ,
-#                dict(pin=pin11, on=0, started=0, point=(5, 2), start_time=start_times[0], stop_time=stop_times[0],
-#                     on_time=on_times[0], off_time=off_times[0])
-#     ,
-#                dict(pin=pin11, on=0, started=0, point=(5, 3), start_time=start_times[1], stop_time=stop_times[1],
-#                     on_time=on_times[1], off_time=off_times[1])
-#     ,
-#                dict(pin=pin11, on=0, started=0, point=(5, 4), start_time=start_times[2], stop_time=stop_times[2],
-#                     on_time=on_times[2], off_time=off_times[2])
-#     ,
-#                dict(pin=pin11, on=0, started=0, point=(5, 5), start_time=start_times[3], stop_time=stop_times[3],
-#                     on_time=on_times[3], off_time=off_times[3])
-#     ,
-#                dict(pin=pin11, on=0, started=0, point=(6, 2), start_time=start_times[0], stop_time=stop_times[0],
-#                     on_time=on_times[0], off_time=off_times[0])
-#     ,
-#                dict(pin=pin11, on=0, started=0, point=(6, 3), start_time=start_times[1], stop_time=stop_times[1],
-#                     on_time=on_times[1], off_time=off_times[1])
-#     ,
-#                dict(pin=pin11, on=0, started=0, point=(6, 4), start_time=start_times[2], stop_time=stop_times[2],
-#                     on_time=on_times[2], off_time=off_times[2])
-#     ,
-#                dict(pin=pin11, on=0, started=0, point=(6, 5), start_time=start_times[3], stop_time=stop_times[3],
-#                     on_time=on_times[3], off_time=off_times[3])
-#     ,
-#                dict(pin=pin11, on=0, started=0, point=(7, 2), start_time=start_times[0], stop_time=stop_times[0],
-#                     on_time=on_times[0],
-#                     off_time=off_times[0])
-#     ,
-#                dict(pin=pin11, on=0, started=0, point=(7, 3), start_time=start_times[1], stop_time=stop_times[1],
-#                     on_time=on_times[1], off_time=off_times[1])
-#     ,
-#                dict(pin=pin11, on=0, started=0, point=(7, 4), start_time=start_times[2], stop_time=stop_times[2],
-#                     on_time=on_times[2], off_time=off_times[2])
-#     ,
-#                dict(pin=pin11, on=0, started=0, point=(7, 5), start_time=start_times[3], stop_time=stop_times[3],
-#                     on_time=on_times[3], off_time=off_times[3])
-#                ]
-#
-# start_times = np.arange(1, 100, 0.1)
-# on_times = [100, 100, 100, 100]
-# off_times = [0.04, 0.03, 0.008, 0.003]
-# growing_square = [
-#     dict(pin=pin11, on=0, started=0, point=(4, 2), start_time=start_times[0], stop_time=10000,
-#          on_time=on_times[0], off_time=off_times[0])
-#     ,
-#     dict(pin=pin11, on=0, started=0, point=(4, 3), start_time=start_times[0], stop_time=1000,
-#          on_time=on_times[1], off_time=off_times[1])
-#     ,
-#     dict(pin=pin11, on=0, started=0, point=(4, 4), start_time=start_times[0], stop_time=1000,
-#          on_time=on_times[2], off_time=off_times[2])
-#     ,
-#     dict(pin=pin11, on=0, started=0, point=(4, 5), start_time=start_times[0], stop_time=100,
-#          on_time=on_times[3], off_time=off_times[3])
-#     ,
-#     dict(pin=pin11, on=0, started=0, point=(5, 2), start_time=start_times[1], stop_time=1000,
-#          on_time=on_times[0], off_time=off_times[0])
-#     ,
-#     dict(pin=pin11, on=0, started=0, point=(5, 3), start_time=start_times[1], stop_time=1000,
-#          on_time=on_times[1], off_time=off_times[1])
-#     ,
-#     dict(pin=pin11, on=0, started=0, point=(5, 4), start_time=start_times[1], stop_time=1000,
-#          on_time=on_times[2], off_time=off_times[2])
-#     ,
-#     dict(pin=pin11, on=0, started=0, point=(5, 5), start_time=start_times[1], stop_time=1000,
-#          on_time=on_times[3], off_time=off_times[3])
-#     ,
-#     dict(pin=pin11, on=0, started=0, point=(6, 2), start_time=start_times[2], stop_time=1000,
-#          on_time=on_times[0], off_time=off_times[0])
-#     ,
-#     dict(pin=pin11, on=0, started=0, point=(6, 3), start_time=start_times[2], stop_time=1000,
-#          on_time=on_times[1], off_time=off_times[1])
-#     ,
-#     dict(pin=pin11, on=0, started=0, point=(6, 4), start_time=start_times[2], stop_time=1000,
-#          on_time=on_times[2], off_time=off_times[2])
-#     ,
-#     dict(pin=pin11, on=0, started=0, point=(6, 5), start_time=start_times[2], stop_time=1000,
-#          on_time=on_times[3], off_time=off_times[3])
-#     ,
-#     dict(pin=pin11, on=0, started=0, point=(7, 2), start_time=start_times[3], stop_time=1000,
-#          on_time=on_times[0],
-#          off_time=off_times[0])
-#     ,
-#     dict(pin=pin11, on=0, started=0, point=(7, 3), start_time=start_times[3], stop_time=1000,
-#          on_time=on_times[1], off_time=off_times[1])
-#     ,
-#     dict(pin=pin11, on=0, started=0, point=(7, 4), start_time=start_times[3], stop_time=1000,
-#          on_time=on_times[2], off_time=off_times[2])
-#     ,
-#     dict(pin=pin11, on=0, started=0, point=(7, 5), start_time=start_times[3], stop_time=1000,
-#          on_time=on_times[3], off_time=off_times[3]),
-#     dict(pin=pin11, on=0, started=0, point=(8, 2), start_time=start_times[4], stop_time=1000,
-#          on_time=on_times[0],
-#          off_time=off_times[0])
-#     ,
-#     dict(pin=pin11, on=0, started=0, point=(8, 3), start_time=start_times[4], stop_time=1000,
-#          on_time=on_times[1], off_time=off_times[1])
-#     ,
-#     dict(pin=pin11, on=0, started=0, point=(8, 4), start_time=start_times[4], stop_time=1000,
-#          on_time=on_times[2], off_time=off_times[2])
-#     ,
-#     dict(pin=pin11, on=0, started=0, point=(8, 5), start_time=start_times[4], stop_time=1000,
-#          on_time=on_times[3], off_time=off_times[3])
-# ]
-
 ISOI = 0.07
 start_times = np.arange(1, 100, 0.1)
 on_times = [0.005, 0.008, 0.01, 0.02]
@@ -329,25 +204,6 @@ phantom = [
     ,
 ]
 
-# moving_point = [
-#     dict(pin=pin11, on=0, started=0, point=(4, 2), start_time=start_times[8], stop_time=0.1, on_time=0.003, off_time=0.003)
-#     ,
-#     dict(pin=pin11, on=0, started=0, point=(4, 3), start_time=start_times[7], stop_time=0.1, on_time=0.003, off_time=0.003)
-#     ,
-#     dict(pin=pin11, on=0, started=0, point=(4, 4), start_time=start_times[6], stop_time=0.1, on_time=0.003, off_time=0.003)
-#     ,
-#     dict(pin=pin11, on=0, started=0, point=(4, 5), start_time=start_times[5], stop_time=0.1, on_time=0.003, off_time=0.003),
-#     dict(pin=pin11, on=0, started=0, point=(4, 6), start_time=start_times[4], stop_time=0.1, on_time=0.003,
-#          off_time=0.003)
-#     ,
-#     dict(pin=pin11, on=0, started=0, point=(5, 5), start_time=start_times[3], stop_time=0.1, on_time=0.003, off_time=0.003)
-#     ,
-#     dict(pin=pin11, on=0, started=0, point=(6, 5), start_time=start_times[2], stop_time=0.1, on_time=0.003, off_time=0.003)
-#     ,
-#     dict(pin=pin11, on=0, started=0, point=(3, 5), start_time=start_times[1], stop_time=0.1, on_time=0.003, off_time=0.003)
-#     ,
-#     dict(pin=pin11, on=0, started=0, point=(8, 5), start_time=start_times[0], stop_time=0.1, on_time=0.003, off_time=0.003),  dict(pin=pin11, on=0, started=0, point=(8, 5), start_time=start_times[0]-0.07, stop_time=0.1, on_time=0.003, off_time=0.003)]
-#
 moving_point = [
     dict(pin=pin11, on=0, point=(4, 3), start_time=start_times[6], stop_time=0.1, on_time=0.1, off_time=0.003)
     ,
@@ -448,9 +304,6 @@ moving_point_square_dulcorner = [
     # dict(pin=pin11, on=0, started=0, point=(6, 5), start_time=start_times[2], stop_time=0.1, on_time=0.003,
     #      off_time=0.003)
 ]
-
-# for jet in moving_point_square_dulcorner:
-#     jet['point'] =(jet['point'][0]+5, jet['point'][1])
 
 moving_point_two_square = moving_point_square_dulcorner + moving_point_square
 
@@ -554,10 +407,7 @@ start_times = np.arange(1, 100, 0.1)
 
 for jet in shading_square:
     jet['cycle'] = jet['on_time'] + jet['off_time']
-    # jet['start_time'] = start_times[i]
-    # jet['on_time'] = 0.2
-    # jet['off_time'] = 0.2
-    # jet['stop_time'] = 0.1
+
 
 # =============== experiment 1 dynamic shape ======================
 square2x2 = [(4, 3), (4, 4), (5, 4), (5, 3), (4, 3)]
